@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nate Luce</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;1,400&family=VT323&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{background:#252F1E;}
+body{font-family:'Libre Baskerville',serif;background:#3B4A2F;color:#E8E0C8;cursor:none;image-rendering:pixelated;}
+canvas#cur{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;image-rendering:pixelated;}
+@media(hover:none){canvas#cur{display:none;}body{cursor:auto;}}
+nav{background:#252F1E;border-bottom:4px solid #1A1F14;display:flex;justify-content:space-between;align-items:stretch;position:sticky;top:0;z-index:100;}
+.nav-logo{font-family:'VT323',monospace;font-size:2rem;color:#C8A84B;text-decoration:none;padding:0.75rem 1.25rem;border-right:4px solid #1A1F14;display:flex;align-items:center;letter-spacing:0.06em;cursor:none;}
+.nav-links{display:flex;list-style:none;}
+.nav-links li{border-left:2px solid #1A1F14;}
+.nav-links a{display:flex;align-items:center;padding:0 1rem;font-family:'VT323',monospace;font-size:1.05rem;letter-spacing:0.1em;color:#8A9B78;text-decoration:none;text-transform:uppercase;height:100%;transition:background 0.1s,color 0.1s;cursor:none;}
+.nav-links a:hover,.nav-links a.active{background:#3B4A2F;color:#C8A84B;}
+.page{display:none;}
+.page.active{display:block;}
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:88vh;border-bottom:4px solid #1A1F14;}
+.hero-left{overflow:hidden;position:relative;border-right:4px solid #1A1F14;}
+.hero-left img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block;}
+.hero-right{background:#3B4A2F;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.hero-video-wrap{position:relative;width:100%;max-width:350px;flex-shrink:0;}
+.hero-video{display:block;width:100%;height:auto;}
+.unmute-btn{position:absolute;bottom:0.75rem;right:0.75rem;font-family:'VT323',monospace;font-size:0.85rem;letter-spacing:0.14em;text-transform:uppercase;background:#1A1F14;color:#8A9B78;border:2px solid #3B4A2F;padding:0.35rem 0.75rem;cursor:pointer;transition:color 0.15s,border-color 0.15s;z-index:10;}
+.unmute-btn:hover{color:#C8A84B;border-color:#C8A84B;}
+.gallery-page{padding:4.5rem 3.5rem;}
+.filter-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2.5rem;}
+.filter-btn{font-family:'VT323',monospace;font-size:0.95rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.4rem 0.9rem;background:#252F1E;color:#6B7F58;border:2px solid #3B4A2F;cursor:none;white-space:nowrap;transition:background 0.1s,color 0.1s,border-color 0.1s;}
+.filter-btn.active,.filter-btn:hover{background:#C8A84B;color:#1A1F14;border-color:#C8A84B;}
+.audio-player{display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;padding:0.75rem 1.25rem;border:2px solid #1A1F14;background:#252F1E;width:fit-content;}
+.audio-play-btn{font-family:'VT323',monospace;font-size:0.85rem;letter-spacing:0.14em;text-transform:uppercase;background:transparent;color:#8A9B78;border:2px solid #3B4A2F;padding:0.3rem 0.9rem;cursor:pointer;transition:color 0.15s,border-color 0.15s;white-space:nowrap;flex-shrink:0;}
+.audio-play-btn:hover,.audio-play-btn.playing{color:#C8A84B;border-color:#C8A84B;}
+.audio-progress-wrap{flex:1;min-width:120px;max-width:260px;height:2px;background:#3B4A2F;position:relative;cursor:pointer;}
+.audio-progress-bar{height:100%;background:#6B7F58;width:0%;pointer-events:none;}
+.audio-time{font-family:'VT323',monospace;font-size:0.82rem;letter-spacing:0.08em;color:#4E6040;white-space:nowrap;flex-shrink:0;}
+.masonry{columns:3;column-gap:3px;}
+.masonry-item{break-inside:avoid;margin-bottom:3px;position:relative;cursor:none;display:block;background:#252F1E;border:2px solid #1A1F14;overflow:hidden;}
+.masonry-item img{display:block;width:100%;height:auto;}
+.masonry-placeholder{width:100%;aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;background:#2A351F;transition:background 0.15s;}
+.masonry-item:hover .masonry-placeholder{background:#222B18;}
+.masonry-placeholder-icon{font-size:1.5rem;opacity:0.18;color:#8A9B78;line-height:1;}
+.masonry-placeholder-text{font-family:'VT323',monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#3B4A2F;}
+.masonry-placeholder.landscape{aspect-ratio:4/3;}
+.masonry-overlay{position:absolute;inset:0;background:none;opacity:0;transition:opacity 0.15s;will-change:opacity;transform:translateZ(0);display:flex;flex-direction:column;justify-content:flex-end;padding:1rem;}
+.masonry-item:hover .masonry-overlay{opacity:1;}
+.masonry-overlay-title{font-family:'VT323',monospace;font-size:2.2rem;letter-spacing:0.05em;color:#F2EFE8;line-height:1.1;text-shadow:1px -1px 0 rgba(0,0,0,0.95),2px -2px 0 rgba(0,0,0,0.6);}
+.lightbox{display:none;position:fixed;inset:0;z-index:1000;background:rgba(20,26,16,0.97);align-items:center;justify-content:center;}
+.lightbox.open{display:flex;}
+.lightbox-close{position:absolute;top:1.25rem;right:1.5rem;font-family:'VT323',monospace;font-size:1rem;letter-spacing:0.14em;text-transform:uppercase;background:transparent;color:#4E6040;border:none;cursor:pointer;transition:color 0.15s;z-index:10;}
+.lightbox-close:hover{color:#C8A84B;}
+.lightbox-stage{position:relative;display:flex;align-items:center;justify-content:center;max-width:96vw;max-height:96vh;}
+.lightbox-img-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+.lightbox-img-wrap img{display:block;max-width:88vw;max-height:92vh;width:auto;height:auto;object-fit:contain;}
+.lightbox-title{position:absolute;bottom:0.75rem;left:0;right:0;padding:0 1.5rem;font-family:'VT323',monospace;font-size:3rem;letter-spacing:0.08em;color:#F2EFE8;text-align:center;pointer-events:none;line-height:1.1;text-shadow:2px -2px 0 rgba(0,0,0,0.92);}
+.lightbox-title.long{font-size:2.3rem;letter-spacing:0.05em;line-height:1.1;}
+.lightbox-title.green{color:#7BAF72;}
+.lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);font-family:'VT323',monospace;font-size:2rem;background:transparent;border:none;color:#6B7F58;cursor:pointer;padding:0.5rem 0.75rem;transition:color 0.15s;z-index:10;line-height:1;user-select:none;}
+.lightbox-arrow:hover{color:#C8A84B;}
+.lightbox-arrow:disabled{opacity:0.12;pointer-events:none;}
+.lightbox-arrow.prev{right:100%;margin-right:-0.5rem;}
+.lightbox-arrow.next{left:100%;margin-left:-0.5rem;}
+.series-text{margin-top:3rem;border:3px solid #1A1F14;background:#252F1E;padding:1.5rem 2rem;}
+.series-text p{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:300;color:#E8E0C8;line-height:1.9;}
+.series-text a{color:#E8E0C8;}
+.series-text a:hover{color:#C8A84B;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:3px;align-items:start;}
+.two-col img{display:block;width:100%;height:auto;border:2px solid #1A1F14;}
+.two-col .series-text{margin-top:0;}
+.full-width-img{display:block;width:100%;height:auto;border:2px solid #1A1F14;}
+.bandcamp-wrap{margin-top:3px;display:block;width:100%;}
+.bandcamp-wrap iframe{display:block;width:100%;border:0;}
+.spacer{height:3rem;}
+.wabi-layout{display:grid;grid-template-columns:1fr 1fr;gap:3px;align-items:stretch;}
+.wabi-left{display:flex;flex-direction:column;gap:3px;}
+.wabi-left img{display:block;width:100%;height:auto;border:2px solid #1A1F14;}
+.wabi-bandcamp{overflow:hidden;flex-shrink:0;}
+.wabi-bandcamp iframe{display:block;width:100%;height:120px;border:0;}
+.wabi-text-box{flex:1;border:3px solid #1A1F14;background:#252F1E;padding:1.5rem;}
+.wabi-text-box p{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:300;color:#E8E0C8;line-height:1.9;}
+.wabi-right{display:flex;flex-direction:column;gap:3px;}
+.wabi-right img{display:block;width:100%;height:auto;border:2px solid #1A1F14;}
+.video-row{margin-top:3px;}
+.video-embed-wrap{position:relative;width:100%;padding-bottom:56.25%;background:#1A1F14;border:2px solid #1A1F14;}
+.video-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.cop-title-img{display:block;width:100%;height:auto;border:2px solid #1A1F14;margin-bottom:3px;}
+.cop-videos{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.cop-video-wrap{position:relative;width:100%;}
+.cop-video-wrap video{display:block;width:100%;height:auto;border:2px solid #1A1F14;}
+.cop-video-caption{font-family:'VT323',monospace;font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;color:#6B7F58;padding:0.5rem 0.25rem;}
+.lucechange-item a{display:block;cursor:none;}
+.lucechange-item a img{display:block;width:100%;height:auto;border:2px solid #1A1F14;transition:opacity 0.15s;}
+.lucechange-item a:hover img{opacity:0.85;}
+.fo-sub-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:2rem;}
+.fo-sub-btn{font-family:'VT323',monospace;font-size:0.95rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.4rem 0.9rem;background:#E8C4C4;color:#4A1A1A;border:2px solid #C49090;cursor:none;white-space:nowrap;transition:background 0.1s,color 0.1s,border-color 0.1s;}
+.fo-sub-btn:hover,.fo-sub-btn.active{background:#C49090;color:#1A1F14;border-color:#A07070;}
+.fo-sub-content{display:none;margin-top:3px;}
+.fo-sub-content.open{display:block;}
+.about-page{padding:5rem 3.5rem;}
+.about-text{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:300;color:#8A9B7A;line-height:2.2;letter-spacing:0.02em;max-width:900px;margin-bottom:3rem;}
+.about-photo{display:block;max-width:900px;width:100%;height:auto;border:3px solid #1A1F14;}
+.contact-page{background:#252F1E;min-height:88vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 3.5rem;}
+.contact-links{display:flex;flex-direction:column;align-items:center;width:100%;}
+.contact-link-item{display:flex;align-items:center;gap:2rem;border-top:2px solid #3B4A2F;width:100%;max-width:640px;padding:2rem 0;}
+.contact-link-item:last-child{border-bottom:2px solid #3B4A2F;}
+.contact-link-label{font-family:'VT323',monospace;font-size:1rem;letter-spacing:0.2em;text-transform:uppercase;color:#4E6040;width:110px;flex-shrink:0;}
+.contact-link-value{font-family:'VT323',monospace;font-size:2.4rem;letter-spacing:0.04em;color:#C8A84B;text-decoration:none;transition:color 0.15s;word-break:break-all;}
+.contact-link-value:hover{color:#E8E0C8;}
+footer{background:#1A1F14;display:flex;justify-content:space-between;align-items:center;padding:1.25rem 3.5rem;border-top:4px solid #252F1E;}
+.footer-logo{font-family:'VT323',monospace;font-size:1.5rem;color:#6B7F58;letter-spacing:0.06em;}
+.footer-copy{font-family:'VT323',monospace;font-size:0.82rem;letter-spacing:0.12em;color:#3B4A2F;}
+@media(max-width:700px){
+  .nav-logo{font-size:1.4rem;padding:0.75rem 1rem;}
+  .nav-links a{font-size:0.95rem;padding:0 0.65rem;letter-spacing:0.06em;}
+  .hero{grid-template-columns:1fr;min-height:auto;display:flex;flex-direction:column;}
+  .hero-right{order:-1;min-height:0;border-bottom:4px solid #1A1F14;}
+  .hero-left{height:75vw;min-height:220px;border-right:none;border-bottom:4px solid #1A1F14;}
+  .hero-video-wrap{max-width:100%;}
+  .gallery-page{padding:2rem 1rem;}
+  .filter-btn{font-size:0.78rem;padding:0.35rem 0.6rem;}
+  .masonry{columns:2;column-gap:2px;}
+  .masonry-item{margin-bottom:2px;}
+  .masonry-overlay-title{font-size:1.5rem;}
+  .audio-player{flex-wrap:wrap;gap:0.6rem;}
+  .audio-progress-wrap{min-width:80px;}
+  .lightbox-img-wrap img{max-width:82vw;max-height:88vh;}
+  .lightbox-arrow{font-size:1.5rem;padding:0.4rem 0.5rem;}
+  .lightbox-title{font-size:2rem;}
+  .lightbox-title.long{font-size:1.5rem;}
+  .series-text{padding:1rem 1.25rem;}
+  .series-text p{font-size:0.95rem;}
+  .two-col{grid-template-columns:1fr;}
+  .wabi-layout{grid-template-columns:1fr;}
+  .cop-videos{grid-template-columns:1fr;}
+  .about-page{padding:2.5rem 1.5rem;}
+  .about-text{font-size:0.9rem;line-height:2;}
+  .contact-page{padding:3rem 1.5rem;min-height:auto;}
+  .contact-link-item{flex-direction:column;align-items:flex-start;gap:0.4rem;padding:1.5rem 0;}
+  .contact-link-label{width:auto;font-size:0.75rem;}
+  .contact-link-value{font-size:1.6rem;}
+  footer{padding:1rem 1.5rem;flex-direction:column;gap:0.4rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+<canvas id="cur"></canvas>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">&#x2715; Close</button>
+  <div class="lightbox-stage">
+    <button class="lightbox-arrow prev" id="lb-prev" onclick="lightboxNav(-1)">&#8592;</button>
+    <div class="lightbox-img-wrap">
+      <img id="lightbox-img" src="" alt="">
+      <div class="lightbox-title" id="lightbox-title"></div>
+    </div>
+    <button class="lightbox-arrow next" id="lb-next" onclick="lightboxNav(1)">&#8594;</button>
+  </div>
+</div>
+
+<nav>
+  <a href="#" class="nav-logo" onclick="showPage('home');return false;">Nate Luce</a>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showPage('gallery');return false;">Work</a></li>
+    <li><a href="#" onclick="showPage('about');return false;">About</a></li>
+    <li><a href="#" onclick="showPage('contact');return false;">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-left"><img src="images/Luce_09.jpg" alt="Nate Luce artwork"></div>
+    <div class="hero-right">
+      <div class="hero-video-wrap">
+        <video class="hero-video" autoplay muted loop playsinline id="heroVideo">
+          <source src="images/06_Luce_Pool_Prayer_For_Isolation_Anxiety_2020.MOV" type="video/mp4">
+        </video>
+        <button class="unmute-btn" id="unmuteBtn" onclick="toggleMute()">&#9650; Unmute</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-gallery">
+  <div class="gallery-page">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="showSeries('apple',this)">Apple Magic</button>
+      <button class="filter-btn" onclick="showSeries('fruition',this)">Fruition</button>
+      <button class="filter-btn" onclick="showSeries('rivers',this)">Rivers and Mountains</button>
+      <button class="filter-btn" onclick="showSeries('gpe',this)">One-Off Projects</button>
+      <button class="filter-btn" onclick="showSeries('worm',this)">Warm Worm World</button>
+      <button class="filter-btn" onclick="showSeries('spfa',this)">Spfa (whispered)</button>
+      <button class="filter-btn" onclick="showSeries('circle',this)">Circle of Protection</button>
+      <button class="filter-btn" onclick="showSeries('www',this)">Double You Double You Double You</button>
+      <button class="filter-btn" onclick="showSeries('wabi',this)">Wabi Sabi TV</button>
+      <button class="filter-btn" onclick="showSeries('flower',this)">Flower Orgy</button>
+      <button class="filter-btn" onclick="showSeries('lucespirits',this)">Luce Spirits</button>
+      <button class="filter-btn" onclick="showSeries('masterclam',this)">Master Clam Hall</button>
+      <button class="filter-btn" onclick="showSeries('writing',this)">Writing</button>
+    </div>
+
+    <!-- APPLE MAGIC -->
+    <div class="series-view" id="series-apple">
+      <div class="audio-player">
+        <button class="audio-play-btn" id="audioBtn" onclick="toggleAudio()">&#9654; Play</button>
+        <div class="audio-progress-wrap" id="audioProgressWrap" onclick="seekAudio(event)">
+          <div class="audio-progress-bar" id="audioProgressBar"></div>
+        </div>
+        <span class="audio-time" id="audioTime">0:00</span>
+        <audio id="appleAudio" preload="none">
+          <source src="images/apple_magic_1_audio_v_2.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+      <div class="masonry" id="masonry-apple">
+        <div class="masonry-item" data-src="images/Gatha_2.jpg" data-hover="Welcome!" data-title="Let me respectfully remind you---" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Gatha_2.jpg" alt="Welcome!">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Welcome!</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Welcome_pic.jpg" data-hover="I'm glad you're here!" data-title="Are you more interested in suffering or freedom from suffering?" data-long="true" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Welcome_pic.jpg" alt="I'm glad you're here!">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">I'm glad you're here!</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_07_new.jpg" data-hover="Langlais' Studio" data-title="Bill Luce embroidered this tree of life; Nate made the version on the right, with the life taken out" data-long="true" data-green="true" onclick="openLightbox(this)">
+          <img src="images/Luce_07_new.jpg" alt="Langlais' Studio">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Langlais' Studio</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_06.jpg" data-hover="Calcinatio" data-title="Mutton is more flavorful than lamb, if you know how to cook it" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_06.jpg" alt="Calcinatio">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Calcinatio</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_04.jpg" data-hover="Dissolution" data-title="The green bear is going to swallow the sun, but don't worry he'll spit it back out" data-long="true" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_04.jpg" alt="Dissolution">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Dissolution</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Tree1.jpg" data-hover="Separation" data-title="What kind of nature can that be, which, coming from a corruptible thing, nevertheless contains in itself a wholly celestial thing?" data-long="true" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Tree1.jpg" alt="Separation">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Separation</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_08.jpg" data-hover="Conniunctio" data-title="Isaac Newton spent more time working on alchemy than apples" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_08.jpg" alt="Conniunctio">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Conniunctio</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_07.jpg" data-hover="Fermentation" data-title="If we don't grow from seeds, where should we start?" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_07.jpg" alt="Fermentation">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Fermentation</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/angel.jpg" data-hover="Distillation" data-title="What's worse than finding a worm in your apple? Finding half a worm in your apple! Everything is bonded" data-long="true" data-green="false" onclick="openLightbox(this)">
+          <img src="images/angel.jpg" alt="Distillation">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Distillation</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_05.jpg" data-hover="Langlais' Outhouse" data-title="This used to be the door to the outhouse, now there's nothing on the other side" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_05.jpg" alt="Langlais' Outhouse">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Langlais' Outhouse</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Gatha_3.jpg" data-hover="Goodbye!" data-title="Thanks for coming" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Gatha_3.jpg" alt="Goodbye!">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Goodbye!</div></div>
+        </div>
+      </div>
+      <div class="series-text"><p>Apple Magic was presented in two separate incarnations in 2024 and 2025 across the orchards and studios of the Langlais Art Preserve in Cushing, Maine.<br><br>Bernard Langlais was born in Old Town, ME in 1921. He had a brief explosion of downtown New York art world success, showing abstract &#8220;wood paintings&#8221; at Martha Jackson and Leo Castelli Galleries, before decamping to Midcoast Maine to live in an environment of his own making. He died in 1977 but his homestead, which includes scattered outdoor sculptures, walking trails, and his relatively untouched studio, is preserved and open to visitors. There is an increasing focus on hosting living contemporary artists.</p></div>
+    </div>
+
+    <!-- FRUITION -->
+    <div class="series-view" id="series-fruition" style="display:none;">
+      <div class="masonry">
+        <div class="masonry-item" data-src="images/Luce_07_fruition.jpg" data-hover="Equatorial Hug" data-title="Equatorial Hug" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_07_fruition.jpg" alt="Equatorial Hug">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Equatorial Hug</div></div>
+        </div>
+        <div class="masonry-item"><div class="masonry-placeholder landscape"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder landscape"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+      </div>
+      <div class="series-text"><p><a href="https://www.cmcanow.org/exhibition-fruition-may4-2025" target="_blank" rel="noopener">Two Person Exhibition with Allison Cekala at the Center for Maine Contemporary Art, 2025.</a></p></div>
+    </div>
+
+    <!-- RIVERS AND MOUNTAINS -->
+    <div class="series-view" id="series-rivers" style="display:none;">
+      <div class="masonry">
+        <div class="masonry-item" data-src="images/IMG_1579.jpg" data-hover="The Seat of the Enlightenment" data-title="The Seat of the Enlightenment" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_1579.jpg" alt="The Seat of the Enlightenment">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">The Seat of the Enlightenment</div></div>
+        </div>
+        <div class="masonry-item"><div class="masonry-placeholder landscape"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder landscape"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+      </div>
+    </div>
+
+    <!-- ONE-OFF PROJECTS -->
+    <div class="series-view" id="series-gpe" style="display:none;">
+      <div class="two-col">
+        <div class="lucechange-item">
+          <a href="https://greenerpasturesstudios.com/nate-luce" target="_blank" rel="noopener">
+            <img src="images/GPS_NATELUCE_.jpg" alt="A Commercial Gamble That Never Paid Off">
+          </a>
+        </div>
+        <div class="series-text"><p><em>A Commercial Gamble That Never Paid Off</em>, 2025 &mdash; an etching made in collaboration with Greener Pastures Studios, in Unity, ME. It is an ode to a pair of grain towers on the Rockland, ME waterfront that were built to circumvent high shipping rates for poultry feed by allowing for direct shipment via barge &mdash; but only one barge-load of grain was ever received, as the poultry industry was already on a downward trajectory when the towers were built; they&#8217;ve stood empty for fifty years. Click to purchase.</p></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="two-col">
+        <img src="images/corrected_olympia.jpg" alt="She was Likely Prepared for Death">
+        <div class="series-text"><p><em>&#8220;She was Likely Prepared for Death, as She Had Rendered a Warning Regarding Its Inevitability to the Cosmos Untold Times,&#8221;</em> &mdash;&mdash;&mdash; Part of the 2023 CMCA Biennial, an ode to Olympia Dukakis (who had died during the Covid era) and to the movie <em>Moonstruck</em>, which is a love story about death.</p></div>
+      </div>
+    </div>
+
+    <!-- WARM WORM WORLD -->
+    <div class="series-view" id="series-worm" style="display:none;">
+      <div class="masonry">
+        <div class="masonry-item" data-src="images/WARM_WORM_WORLD.jpg" data-hover="Show Announcement" data-title="Show Announcement" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/WARM_WORM_WORLD.jpg" alt="Show Announcement">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Show Announcement</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/NateLuce_KarmaSlug.jpg" data-hover="Karma Slug" data-title="Karma Slug" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/NateLuce_KarmaSlug.jpg" alt="Karma Slug">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Karma Slug</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Aphrodite.jpg" data-hover="Aphrodite" data-title="Aphrodite" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Aphrodite.jpg" alt="Aphrodite">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Aphrodite</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/NateLuce_Re-Creating.jpg" data-hover="Recreation" data-title="Recreation" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/NateLuce_Re-Creating.jpg" alt="Recreation">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Recreation</div></div>
+        </div>
+        <div class="masonry-item"><div class="masonry-placeholder"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+        <div class="masonry-item"><div class="masonry-placeholder landscape"><div class="masonry-placeholder-icon">&#9670;</div><div class="masonry-placeholder-text">Upload artwork</div></div></div>
+      </div>
+      <div class="series-text"><p><em>Warm Worm World</em> was a 2022 solo show at BUOY Gallery in Kittery, ME, the town where Bill Luce died. It was mostly about death.</p></div>
+    </div>
+
+    <!-- SPFA (WHISPERED) -->
+    <div class="series-view" id="series-spfa" style="display:none;">
+      <div class="masonry">
+        <div class="masonry-item" data-src="images/01_Luce_Do_The_Dew_2019.jpg" data-hover="Do the Dew" data-title="Do the Dew" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/01_Luce_Do_The_Dew_2019.jpg" alt="Do the Dew">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Do the Dew</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/02_Luce_Cave_Of_Remembered_Dreams_2019.jpg" data-hover="Cave of Remembered Dreams" data-title="Cave of Remembered Dreams" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/02_Luce_Cave_Of_Remembered_Dreams_2019.jpg" alt="Cave of Remembered Dreams">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Cave of Remembered Dreams</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/03_Luce_Giovanna_2019.jpg" data-hover="Giovanna" data-title="Giovanna" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/03_Luce_Giovanna_2019.jpg" alt="Giovanna">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Giovanna</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/04_Luce_Ring_The_Bell_2019.jpg" data-hover="Ring the Bell" data-title="Ring the Bell" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/04_Luce_Ring_The_Bell_2019.jpg" alt="Ring the Bell">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Ring the Bell</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/05_Luce_Goo_Totem_2019.jpg" data-hover="Goo Totem" data-title="Goo Totem" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/05_Luce_Goo_Totem_2019.jpg" alt="Goo Totem">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Goo Totem</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/08_Luce_Nathan_Trinity_2019.jpg" data-hover="Trinity" data-title="Trinity" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/08_Luce_Nathan_Trinity_2019.jpg" alt="Trinity">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Trinity</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/09_Luce_Nathan_Chthonic_Serpent_2019.jpg" data-hover="Chthonic Serpent" data-title="Chthonic Serpent" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/09_Luce_Nathan_Chthonic_Serpent_2019.jpg" alt="Chthonic Serpent">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Chthonic Serpent</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_Barnett_Newmans_Ninth_Station_Of_The_Cross_3.jpg" data-hover="Barnett Newman's 'Ninth Station of the Cross'" data-title="Barnett Newman's 'Ninth Station of the Cross'" data-long="true" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_Barnett_Newmans_Ninth_Station_Of_The_Cross_3.jpg" alt="Barnett Newman's 'Ninth Station of the Cross'">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Barnett Newman&#8217;s &#8216;Ninth Station&#8217;</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/Luce_Nathan_06.jpg" data-hover="Installation View" data-title="Installation View" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/Luce_Nathan_06.jpg" alt="Installation View">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Installation View</div></div>
+        </div>
+      </div>
+      <div class="series-text"><p><em>Spfa (whispered)</em> was a 2019 solo show at New Systems Exhibitions in Portland, ME.</p></div>
+    </div>
+
+    <!-- CIRCLE OF PROTECTION -->
+    <div class="series-view" id="series-circle" style="display:none;">
+      <img class="cop-title-img" src="images/08_CoP_Title_Screen.jpg" alt="Circle of Protection">
+      <div class="cop-videos">
+        <div class="cop-video-item">
+          <div class="cop-video-wrap">
+            <video autoplay muted loop playsinline id="copVideo1">
+              <source src="images/Cop_Trailer_1_small.mov" type="video/mp4">
+            </video>
+            <button class="unmute-btn" onclick="toggleCopMute(1)">&#9650; Unmute</button>
+          </div>
+          <div class="cop-video-caption">Circle of Protection Teaser 1</div>
+        </div>
+        <div class="cop-video-item">
+          <div class="cop-video-wrap">
+            <video autoplay muted loop playsinline id="copVideo2">
+              <source src="images/trailer2_small.mov" type="video/mp4">
+            </video>
+            <button class="unmute-btn" onclick="toggleCopMute(2)">&#9650; Unmute</button>
+          </div>
+          <div class="cop-video-caption">Circle of Protection Teaser 2</div>
+        </div>
+      </div>
+      <div class="series-text"><p>Circle of Protection was a Covid-era installation/performance that took advantage of the need for social distancing and isolation by creating a series of small chambers that young docents would lead participants through one at a time, with instructions on how to engage with the art inside. It was installed in the gymnasium of the Lincoln Street Center, where Louise Nevelson attended elementary school.</p></div>
+    </div>
+
+    <!-- DOUBLE YOU DOUBLE YOU DOUBLE YOU -->
+    <div class="series-view" id="series-www" style="display:none;">
+      <div class="masonry">
+        <div class="masonry-item" data-src="images/IMG_7348.jpg" data-hover="Installation View" data-title="Installation View" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7348.jpg" alt="Installation View">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Installation View</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7024.jpg" data-hover="Installation View" data-title="Installation View" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7024.jpg" alt="Installation View">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Installation View</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7346.jpg" data-hover="Garrison Keillor" data-title="Garrison Keillor" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7346.jpg" alt="Garrison Keillor">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Garrison Keillor</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7026.jpg" data-hover="Poison Schlitz" data-title="Poison Schlitz" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7026.jpg" alt="Poison Schlitz">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Poison Schlitz</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7343.jpg" data-hover="Patch Dad" data-title="Patch Dad" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7343.jpg" alt="Patch Dad">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Patch Dad</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7344.jpg" data-hover="Lagoon Pond Oyster" data-title="Lagoon Pond Oyster" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7344.jpg" alt="Lagoon Pond Oyster">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Lagoon Pond Oyster</div></div>
+        </div>
+        <div class="masonry-item" data-src="images/IMG_7341.jpg" data-hover="Camel Cig" data-title="Camel Cig" data-long="false" data-green="false" onclick="openLightbox(this)">
+          <img src="images/IMG_7341.jpg" alt="Camel Cig">
+          <div class="masonry-overlay"><div class="masonry-overlay-title">Camel Cig</div></div>
+        </div>
+      </div>
+      <div class="series-text"><p>&#8220;Double You Double You Double You&#8221; was a 2017 two-person exhibition with Baxter Koziol (1995&ndash;2025) at BUOY Gallery in Kittery, ME. It was mostly about fathers (and their absence).</p></div>
+    </div>
+
+    <!-- WABI SABI TV -->
+    <div class="series-view" id="series-wabi" style="display:none;">
+      <div class="wabi-layout">
+        <div class="wabi-left">
+          <img src="images/R1-04817-0008.jpg" alt="Wabi Sabi TV">
+          <div class="wabi-bandcamp">
+            <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1111055918/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=3029475240/transparent=true/" seamless loading="lazy"><a href="https://newcamprecords.bandcamp.com/album/wabi-sabi-tv">Wabi Sabi TV by New Camp Records</a></iframe>
+          </div>
+          <div class="wabi-text-box"><p>Wabi Sabi TV was a pop music and video project with Anna Fusco active in San Francisco and New York from 2012 to 2014.</p></div>
+        </div>
+        <div class="wabi-right">
+          <img src="images/R1-04817-0003.jpg" alt="Wabi Sabi TV">
+        </div>
+      </div>
+      <div class="video-row">
+        <div class="video-embed-wrap">
+          <iframe src="https://www.youtube.com/embed/0GPezyhytCg" allowfullscreen loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOWER ORGY -->
+    <div class="series-view" id="series-flower" style="display:none;">
+      <div class="two-col">
+        <img src="images/FlowerOrgy.jpg" alt="Flower Orgy" style="border:2px solid #1A1F14;">
+        <div class="series-text" style="margin-top:0;"><p>Flower Orgy was a musical project that existed from 2010 to 2016, featuring a rotating cast of collaborators. They were very active in the Brooklyn d.i.y. universe, playing often at venues like 285 Kent, Shea Stadium, Silent Barn and Monster Island Basement before becoming a more diffuse, peripatetic bedroom project. They released music, made videos, and went on tour. A couple of my favorite artifacts are directly below; explore the full catalogue through the pink tabs.</p></div>
+      </div>
+      <!-- Featured artifacts -->
+      <iframe style="border:0;width:100%;height:120px;margin-top:3px;display:block;" src="https://bandcamp.com/EmbeddedPlayer/album=2815272215/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=1541776704/transparent=true/" seamless loading="lazy"><a href="https://neveranythingrecords.bandcamp.com/album/american-ladyslippers">American Ladyslippers by Flower Orgy</a></iframe>
+      <div class="video-embed-wrap" style="margin-top:3px;">
+        <iframe src="https://player.vimeo.com/video/72141022" allowfullscreen loading="lazy"></iframe>
+      </div>
+
+      <!-- Subsection buttons -->
+      <div class="fo-sub-row">
+        <button class="fo-sub-btn" onclick="toggleFoSub('camping',this)">Camping Trip Tape</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('redhook',this)">Red Hook Tape</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('conditioning',this)">Conditioning</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('oursong',this)">Our Song 7&quot;</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('itsthepits',this)">It&#39;s the Pits!</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('weenieleaks',this)">WeenieLeaks</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('ladyslippers',this)">American Ladyslippers</button>
+        <button class="fo-sub-btn" onclick="toggleFoSub('treefruit',this)">Tree Fruit</button>
+      </div>
+
+      <!-- Camping Trip Tape -->
+      <div class="fo-sub-content" id="fo-camping">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=2488168382/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=2065057519/transparent=true/" seamless loading="lazy"><a href="https://flowerorgy.bandcamp.com/album/flower-orgy">Flower Orgy by Flower Orgy</a></iframe>
+        <div class="series-text" style="margin-top:0;margin-bottom:3rem;"><p>The first Flower Orgy cassette, recorded on a portable tape player during a camping trip in the Green Mountains. Released on The Curatorial Club, which in its short existence also put out early work from Chuck Person (aka Dan Lopatin / Oneohtrix Point Never), Zonotope TM (aka Lucas Nathan / Jerry Paper), Sultan (aka Kayla Cohen / Itasca), Run DMT (aka Michael Collins / Drugdealer) etc etc.</p></div>
+      </div>
+
+      <!-- Red Hook Tape -->
+      <div class="fo-sub-content" id="fo-redhook">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1402740652/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/transparent=true/" seamless loading="lazy"><a href="https://firetalk.bandcamp.com/album/flower-orgy">Flower Orgy by Flower Orgy</a></iframe>
+        <div class="video-embed-wrap" style="margin-top:3px;">
+          <iframe src="https://www.youtube.com/embed/sxk8jkRexMc" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- Conditioning -->
+      <div class="fo-sub-content" id="fo-conditioning">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1429474357/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=1178318574/transparent=true/" seamless loading="lazy"><a href="https://newcamprecords.bandcamp.com/album/flower-orgy-conditioning">Flower Orgy- Conditioning by New Camp Records</a></iframe>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- Our Song 7" -->
+      <div class="fo-sub-content" id="fo-oursong">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=2494593151/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/transparent=true/" seamless loading="lazy"><a href="https://firetalk.bandcamp.com/album/our-song">Our Song by Flower Orgy</a></iframe>
+        <div class="video-embed-wrap" style="margin-top:3px;">
+          <iframe src="https://player.vimeo.com/video/72141022" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- It's the Pits! -->
+      <div class="fo-sub-content" id="fo-itsthepits">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=60767079/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=691213516/transparent=true/" seamless loading="lazy"><a href="https://newcamprecords.bandcamp.com/album/flower-orgy-its-the-pits">Flower Orgy- It&#39;s the Pits! by New Camp Records</a></iframe>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- WeenieLeaks -->
+      <div class="fo-sub-content" id="fo-weenieleaks">
+        <div class="video-embed-wrap">
+          <iframe src="https://www.youtube.com/embed/yl_mKc02nvk" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <iframe style="border:0;width:100%;height:120px;margin-top:3px;display:block;" src="https://bandcamp.com/EmbeddedPlayer/album=3900244671/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=3768131377/transparent=true/" seamless loading="lazy"><a href="https://newcamprecords.bandcamp.com/album/weenieleaks">WeenieLeaks by Flower Orgy</a></iframe>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- American Ladyslippers -->
+      <div class="fo-sub-content" id="fo-ladyslippers">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=2815272215/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=1541776704/transparent=true/" seamless loading="lazy"><a href="https://neveranythingrecords.bandcamp.com/album/american-ladyslippers">American Ladyslippers by Flower Orgy</a></iframe>
+        <div class="series-text"><p></p></div>
+      </div>
+
+      <!-- Tree Fruit -->
+      <div class="fo-sub-content" id="fo-treefruit">
+        <iframe style="border:0;width:100%;height:120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1168509849/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/artwork=small/track=2431425710/transparent=true/" seamless loading="lazy"><a href="https://neveranythingrecords.bandcamp.com/album/im-scattered">I&#39;m Scattered by Tree Fruit</a></iframe>
+        <div class="series-text"><p>Tree Fruit was a musical project active on Martha&#8217;s Vineyard from 2018 to 2020; it was more or less a continuation of the Flower Orgy mindset under a different name. Collaborators included Stu Rodegast and Flo Alexander. They released one cassette on Never Anything Records, which was mixed by and featured synthesizer from Jana Hunter (Lower Dens).</p></div>
+      </div>
+
+    </div>
+
+    <!-- LUCE SPIRITS -->
+    <div class="series-view" id="series-lucespirits" style="display:none;">
+      <img class="full-width-img" src="images/DSC09320.jpg" alt="Luce Spirits">
+      <div class="series-text"><p>Luce Spirits is a business that makes botanically-oriented beverages. Its tasting room in downtown Rockland is a community space which holds all kinds of events&mdash;lectures, dance parties, first dates, and karaoke nights. I&#8217;m responsible for product formulas and label design, event programming and poster design, administrative functioning, hosting karaoke, and generally cultivating the space.</p></div>
+    </div>
+
+    <!-- MASTER CLAM HALL -->
+    <div class="series-view" id="series-masterclam" style="display:none;">
+      <div class="series-text" style="margin-top:0;"><p>The Master Clam Meditation Hall is a space that hosts regular group sitting in the Zen tradition; inquire for schedule and address.</p></div>
+    </div>
+
+    <!-- WRITING -->
+    <div class="series-view" id="series-writing" style="display:none;">
+      <div class="series-text" style="margin-top:0;"><p>Writings are as varied as a book chapter on absinthe in <a href="https://www.abramsbooks.com/product/kings-county-distillery-guide-to-urban-moonshining_9781419709906/" target="_blank" rel="noopener"><em>The Kings County Distillery Guide to Urban Moonshining</em></a>, a <a href="https://dash.harvard.edu/entities/publication/7648bf79-794e-4324-aa4e-bfcfd57d4beb" target="_blank" rel="noopener">master&#8217;s thesis</a> on the social and psychological benefits of mystical experience, and an interview with d.i.y. publishing legend V. Vale in the <em>Ad Hoc</em> zine (a short-lived attempt to physicalize a group of late-oughts music blogs).</p></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="page" id="page-about">
+  <div class="about-page">
+    <p class="about-text">Nate Luce is a multimedia artist who studied art at Bennington College and religion at Harvard University. Beyond painting, embroidery, and sculpture, his practice extends to music, installation, Zen meditation, and experiments in distillation and rectification. In 2024, he was the first living artist to present a solo exhibition at the Langlais Art Preserve (Cushing, ME); other recent highlights include a two-person exhibition at the Center for Maine Contemporary Art (Rockland, ME, 2025), a solo exhibition at BUOY Gallery (Kittery, ME, 2022), as well as participation in the 2023 CMCA Biennial. Additionally, Nate has completed residencies at Hewnoaks (Lovell, ME, 2021, 2025) and the Zen Mountain Monastery (Mt. Tremper, NY, 2024). He currently lives and works in Rockland, ME, where he also oversees the Master Clam Meditation Hall, a space open to all for weekly sitting practice; and operates Luce Spirits, an eccentric and beloved nano-distillery and bar.</p>
+    <img class="about-photo" src="images/Luce_10.jpg" alt="Nate Luce">
+  </div>
+</div>
+
+<div class="page" id="page-contact">
+  <div class="contact-page">
+    <div class="contact-links">
+      <div class="contact-link-item">
+        <span class="contact-link-label">Email</span>
+        <a href="mailto:luce.nate@gmail.com" class="contact-link-value">luce.nate@gmail.com</a>
+      </div>
+      <div class="contact-link-item">
+        <span class="contact-link-label">Instagram</span>
+        <a href="https://instagram.com/lazynatey" class="contact-link-value">@lazynatey</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-logo">Nate Luce</span>
+  <span class="footer-copy">[ &copy; 2026 &mdash; all works reserved ]</span>
+</footer>
+
+<script>
+const cvs=document.getElementById('cur');
+const S=3,COLS=14,ROWS=22;
+cvs.width=COLS*S;cvs.height=ROWS*S;
+cvs.style.width=(COLS*S)+'px';cvs.style.height=(ROWS*S)+'px';
+const ctx=cvs.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+const _=null,K='#1A1F14',B='#7EC8E3',F3='#FFEE88',F2='#F5A030',F1='#F28BB8',G1='#C8A84B',G2='#8B6F28';
+const BODY=[[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,K,K,K,K,K,_,_,_,_,_,_,_],[_,K,B,B,B,B,B,K,_,_,_,_,_,_],[_,K,B,B,B,B,B,K,_,_,_,_,_,_],[_,K,B,B,B,B,B,K,_,_,_,_,_,_],[_,_,K,B,B,B,B,B,K,_,_,_,_,_],[_,_,K,B,B,B,B,B,K,_,_,_,_,_],[_,_,_,K,B,B,B,B,B,K,_,_,_,_],[_,_,_,K,B,B,B,B,B,K,_,_,_,_],[_,_,_,_,K,B,B,B,B,B,K,_,_,_],[_,_,_,_,K,B,B,B,B,B,K,_,_,_],[_,_,_,_,_,K,B,B,B,B,B,K,_,_],[_,_,_,_,_,K,G1,G1,G1,G1,G1,K,_,_],[_,_,_,_,_,K,G2,G2,G2,G2,G2,K,_,_],[_,_,_,_,_,K,G1,G1,G1,G1,G1,K,_,_],[_,_,_,_,_,_,K,G2,G2,G2,G2,K,_,_],[_,_,_,_,_,_,_,K,K,K,K,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_]];
+const FLAME_A=[[_,_,F3,_,_,_,_,_,_,_,_,_,_,_],[_,F2,F3,F2,_,_,_,_,_,_,_,_,_,_],[F1,F2,F3,F2,F1,_,_,_,_,_,_,_,_,_],[_,F1,F2,F1,_,_,_,_,_,_,_,_,_,_],[_,_,K,_,_,_,_,_,_,_,_,_,_,_]];
+const FLAME_B=[[_,F3,_,_,_,_,_,_,_,_,_,_,_,_],[_,F2,F3,F2,_,_,_,_,_,_,_,_,_,_],[F1,F2,F3,F2,F1,_,_,_,_,_,_,_,_,_],[_,F1,F2,F1,_,_,_,_,_,_,_,_,_,_],[_,_,K,_,_,_,_,_,_,_,_,_,_,_]];
+const WICK=[[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,_,_,_,_,_,_,_,_,_,_,_,_],[_,_,K,_,_,_,_,_,_,_,_,_,_,_]];
+function paintRows(rows,sr){rows.forEach((row,r)=>row.forEach((c,col)=>{if(c){ctx.fillStyle=c;ctx.fillRect(col*S,(sr+r)*S,S,S);}}));}
+let frame=0,tick=0,pressing=false;
+function render(){ctx.clearRect(0,0,cvs.width,cvs.height);for(let r=5;r<ROWS;r++)for(let c=0;c<COLS;c++){const col=BODY[r][c];if(col){ctx.fillStyle=col;ctx.fillRect(c*S,r*S,S,S);}}paintRows(pressing?WICK:(frame===0?FLAME_A:FLAME_B),0);}
+render();
+function animate(){tick++;if(tick%16===0){frame=1-frame;if(!pressing)render();}requestAnimationFrame(animate);}
+animate();
+document.addEventListener('mousemove',e=>{cvs.style.left=(e.clientX-2*S)+'px';cvs.style.top=(e.clientY)+'px';});
+document.addEventListener('mousedown',()=>{pressing=true;render();});
+document.addEventListener('mouseup',()=>{pressing=false;render();});
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  const map={gallery:'Work',about:'About',contact:'Contact'};
+  if(map[name]){document.querySelectorAll('.nav-links a').forEach(a=>{if(a.textContent.trim()===map[name])a.classList.add('active');});}
+  window.scrollTo(0,0);
+  const aud=document.getElementById('appleAudio');
+  if(name!=='gallery'&&aud&&!aud.paused){aud.pause();updateAudioBtn();}
+}
+function showSeries(name,btn){
+  document.querySelectorAll('.series-view').forEach(s=>s.style.display='none');
+  document.getElementById('series-'+name).style.display='block';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+  const aud=document.getElementById('appleAudio');
+  if(name!=='apple'&&aud&&!aud.paused){aud.pause();updateAudioBtn();}
+}
+function toggleFoSub(name,btn){
+  const content=document.getElementById('fo-'+name);
+  const isOpen=content.classList.contains('open');
+  document.querySelectorAll('.fo-sub-content').forEach(c=>c.classList.remove('open'));
+  document.querySelectorAll('.fo-sub-btn').forEach(b=>b.classList.remove('active'));
+  if(!isOpen){content.classList.add('open');btn.classList.add('active');}
+}
+function toggleMute(){
+  const v=document.getElementById('heroVideo');
+  const b=document.getElementById('unmuteBtn');
+  v.muted=!v.muted;
+  b.textContent=v.muted?'\u25b2 Unmute':'\u25bc Mute';
+}
+function toggleCopMute(n){
+  const v=document.getElementById('copVideo'+n);
+  const b=v.parentElement.querySelector('.unmute-btn');
+  v.muted=!v.muted;
+  b.textContent=v.muted?'\u25b2 Unmute':'\u25bc Mute';
+}
+function toggleAudio(){const aud=document.getElementById('appleAudio');if(aud.paused){aud.play();}else{aud.pause();}updateAudioBtn();}
+function updateAudioBtn(){const aud=document.getElementById('appleAudio');const btn=document.getElementById('audioBtn');if(!btn)return;btn.textContent=aud.paused?'\u25b6 Play':'\u23f8 Pause';btn.classList.toggle('playing',!aud.paused);}
+function formatTime(s){const m=Math.floor(s/60);const sec=Math.floor(s%60);return m+':'+(sec<10?'0':'')+sec;}
+function seekAudio(e){const aud=document.getElementById('appleAudio');const wrap=document.getElementById('audioProgressWrap');if(!aud.duration)return;const rect=wrap.getBoundingClientRect();aud.currentTime=((e.clientX-rect.left)/rect.width)*aud.duration;}
+document.addEventListener('DOMContentLoaded',()=>{
+  const aud=document.getElementById('appleAudio');if(!aud)return;
+  aud.addEventListener('timeupdate',()=>{if(!aud.duration)return;document.getElementById('audioProgressBar').style.width=((aud.currentTime/aud.duration)*100)+'%';document.getElementById('audioTime').textContent=formatTime(aud.currentTime);});
+  aud.addEventListener('ended',updateAudioBtn);aud.addEventListener('play',updateAudioBtn);aud.addEventListener('pause',updateAudioBtn);
+});
+let lbItems=[],lbIndex=0;
+function openLightbox(el){
+  const masonry=el.closest('.masonry');
+  const allItems=Array.from(masonry.querySelectorAll('.masonry-item[data-src]'));
+  if(!allItems.length)return;
+  lbItems=allItems;lbIndex=allItems.indexOf(el);
+  showLightboxItem();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function showLightboxItem(){
+  const el=lbItems[lbIndex];
+  const isLong=el.dataset.long==='true';
+  const isGreen=el.dataset.green==='true';
+  const titleEl=document.getElementById('lightbox-title');
+  document.getElementById('lightbox-img').src=el.dataset.src;
+  titleEl.textContent=el.dataset.title||'';
+  let cls='lightbox-title';
+  if(isLong) cls+=' long';
+  if(isGreen) cls+=' green';
+  titleEl.className=cls;
+  document.getElementById('lb-prev').disabled=lbIndex===0;
+  document.getElementById('lb-next').disabled=lbIndex===lbItems.length-1;
+}
+function lightboxNav(dir){lbIndex=Math.max(0,Math.min(lbItems.length-1,lbIndex+dir));showLightboxItem();}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
+document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLightbox();});
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  if(e.key==='Escape')closeLightbox();
+  if(e.key==='ArrowLeft')lightboxNav(-1);
+  if(e.key==='ArrowRight')lightboxNav(1);
+});
+</script>
+</body>
+</html>
